@@ -5,10 +5,12 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,6 +35,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
@@ -58,6 +62,7 @@ public class MainActivity extends AppCompatActivity
     private String SMS_MESSAGE = null;
     private String LOC_LATITUDE = null;
     private String LOC_LONGITUDE = null;
+    private String LOG_CURRENT_TIMESTAMP = null;
 
     private final String SMS_SENT = "BUZZAPP_SMS_SENT";
     private final String SMS_DELIVERED = "BUZZAPP_SMS_DELIVERED";
@@ -68,6 +73,8 @@ public class MainActivity extends AppCompatActivity
 
     private Button btnSend;
     private TextView txtCurrentLocation;
+
+    private LocationCallback mLocationCallback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -192,6 +199,8 @@ public class MainActivity extends AppCompatActivity
         SMS_CODE = 0;
         NO_OF_SENT_MSGS = 0;
         NO_OF_RECIPIENTS = lstNumbers.size();
+        LOG_CURRENT_TIMESTAMP = Util.GetCurrentDateTime();
+
         if(true) {
             sendMessage();
         }
@@ -238,11 +247,14 @@ public class MainActivity extends AppCompatActivity
         Intent smsDeliveryIntent = new Intent(SMS_DELIVERED);
 
         smsSentIntent.putExtra("NUMBER", lstNumbers.get(0));
+        smsSentIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
         smsDeliveryIntent.putExtra("NUMBER", lstNumbers.get(0));
+        smsDeliveryIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
 
         smsSentPendingIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsSentIntent, PendingIntent.FLAG_ONE_SHOT);
         smsSentDeliveredIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsDeliveryIntent, PendingIntent.FLAG_ONE_SHOT);
 
+        InsertLogRecord(LOG_CURRENT_TIMESTAMP, lstNumbers.get(0));
         smsManager.sendTextMessage(lstNumbers.get(0), null, SMS_MESSAGE, smsSentPendingIntent, smsSentDeliveredIntent);
 
         SMS_CODE++;
@@ -264,6 +276,17 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
+        mLocationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    return;
+                }
+                for (Location location : locationResult.getLocations()) {
+                    OnSuccess(String.valueOf(location.getLatitude()), String.valueOf(location.getLongitude()));
+                }
+            };
+        };
 
     }
 
@@ -276,12 +299,14 @@ public class MainActivity extends AppCompatActivity
                 String sStatus = null;
                 String smsReceiveAction = intent.getAction();
                 String smsReceiveNumber = intent.getStringExtra("NUMBER");
+                String smsLogTimeStamp = intent.getStringExtra("LOG_TIMESTAMP");
 
                 if(smsReceiveAction.equals(SMS_SENT)) {
                     sStatus = getSMSSentStatus(getResultCode());
                     if(sStatus.equals("RESULT_OK")) {
                         NO_OF_SENT_MSGS++;
                     }
+                    ModifyLogRecord(smsLogTimeStamp, smsReceiveNumber, sStatus, null);
                     lstSentNumbers.put(smsReceiveNumber, sStatus);
 
                     if (!lstNumbers.isEmpty()) {
@@ -303,6 +328,7 @@ public class MainActivity extends AppCompatActivity
 
                     sStatus = getSMSDeliveryStatus(smsMsg.getStatus());
                     lstDeliveredNumbers.put(smsReceiveNumber, sStatus);
+                    ModifyLogRecord(smsLogTimeStamp, smsReceiveNumber, null, sStatus);
                 }
 
                 if(lstNumbers.isEmpty()) {
@@ -349,7 +375,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    String getSMSSentStatus(int resultCode) {
+    private String getSMSSentStatus(int resultCode) {
         switch (resultCode) {
             case Activity.RESULT_OK:
                 return "RESULT_OK";
@@ -365,4 +391,36 @@ public class MainActivity extends AppCompatActivity
                 return "RESULT_ERROR_UNKNOWN";
         }
     }
+
+    private void InsertLogRecord(String logTimeStamp, String number) {
+        BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
+        SQLiteDatabase buzzDB = buzzDBHandler.getWritableDatabase();
+        ContentValues logValues = new ContentValues();
+
+        logValues.put(BuzzDBSchema.SMSLog.COL_LOG_TIMESTAMP, logTimeStamp);
+        logValues.put(BuzzDBSchema.SMSLog.COL_SMS_MESSAGE, SMS_MESSAGE);
+        logValues.put(BuzzDBSchema.SMSLog.COL_SMS_NUMBER, number);
+
+
+        buzzDB.insert(BuzzDBSchema.SMSLog.TABLE_NAME, null, logValues);
+    }
+
+    private void ModifyLogRecord(String logTimeStamp, String number, String sentStatus, String deliveryStatus) {
+        BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
+        SQLiteDatabase buzzDB = buzzDBHandler.getWritableDatabase();
+        ContentValues logValues = new ContentValues();
+
+        String selection = String.format("%s = ? AND %s = ?", BuzzDBSchema.SMSLog.COL_LOG_TIMESTAMP, BuzzDBSchema.SMSLog.COL_SMS_NUMBER);
+        String[] selectionArgs = new String[] {logTimeStamp, number};
+
+        if(sentStatus == null) {
+            logValues.put(BuzzDBSchema.SMSLog.COL_SMS_DELIVERY_STATUS, deliveryStatus);
+        }
+        else {
+            logValues.put(BuzzDBSchema.SMSLog.COL_SMS_SENT_STATUS, sentStatus);
+        }
+
+        buzzDB.update(BuzzDBSchema.SMSLog.TABLE_NAME, logValues, selection, selectionArgs);
+    }
+
 }
