@@ -176,7 +176,7 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-    protected void btnSendOnClick(View view) {
+    private void btnSendOnClick(View view) {
         loadNumbers();
         if(true) {
             sendMessage();
@@ -213,8 +213,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    protected void sendMessage() {
-
+    private void sendMessage() {
         sendNextMessage();
     }
 
@@ -237,7 +236,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @SuppressLint("MissingPermission")
-    public void setLocation() {
+    private void setLocation() {
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         mFusedLocationClient.getLastLocation()
