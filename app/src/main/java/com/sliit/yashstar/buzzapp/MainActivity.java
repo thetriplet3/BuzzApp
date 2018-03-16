@@ -63,6 +63,8 @@ public class MainActivity extends AppCompatActivity
     private final String SMS_DELIVERED = "BUZZAPP_SMS_DELIVERED";
 
     private int SMS_CODE = 0;
+    private int NO_OF_RECIPIENTS = 0;
+    private int NO_OF_SENT_MSGS = 0;
 
     private Button btnSend;
     private TextView txtCurrentLocation;
@@ -185,8 +187,11 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-    private void btnSendOnClick(View view) {
+    protected void btnSendOnClick(View view) {
         loadNumbers();
+        SMS_CODE = 0;
+        NO_OF_SENT_MSGS = 0;
+        NO_OF_RECIPIENTS = lstNumbers.size();
         if(true) {
             sendMessage();
         }
@@ -274,8 +279,9 @@ public class MainActivity extends AppCompatActivity
 
                 if(smsReceiveAction.equals(SMS_SENT)) {
                     sStatus = getSMSSentStatus(getResultCode());
-                    sToastMessage = String.format("Message sent to %s - Status %s ", smsReceiveNumber, sStatus);
-                    Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
+                    if(sStatus.equals("RESULT_OK")) {
+                        NO_OF_SENT_MSGS++;
+                    }
                     lstSentNumbers.put(smsReceiveNumber, sStatus);
 
                     if (!lstNumbers.isEmpty()) {
@@ -295,11 +301,20 @@ public class MainActivity extends AppCompatActivity
                         smsMsg = SmsMessage.createFromPdu(pdu);
                     }
 
-                    sStatus = getSMSSentStatus(smsMsg.getStatus());
-                    sToastMessage = String.format("Message delivered to %s - Status %s ", smsReceiveNumber, sStatus);
-                    Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
+                    sStatus = getSMSDeliveryStatus(smsMsg.getStatus());
                     lstDeliveredNumbers.put(smsReceiveNumber, sStatus);
                 }
+
+                if(lstNumbers.isEmpty()) {
+                    if(NO_OF_SENT_MSGS == NO_OF_RECIPIENTS) {
+                        sToastMessage = String.format("Message sent to all recipients.");
+                    }
+                    else {
+                        sToastMessage = String.format("Message sent to %d out of %d recipients.", NO_OF_SENT_MSGS, NO_OF_RECIPIENTS);
+                    }
+                    Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
+                }
+
             }
         };
     }
@@ -311,7 +326,7 @@ public class MainActivity extends AppCompatActivity
         LOC_LATITUDE = lat;
         LOC_LONGITUDE = lon;
         sLocationString = String.format("https://www.google.com/maps/?q=%s,%s", LOC_LATITUDE, LOC_LONGITUDE);
-        SMS_MESSAGE = String.format("Please send cheese koththu, Bathala star!! - %s", sLocationString);
+        SMS_MESSAGE = String.format("PLEASE SEND HELP!! - %s", sLocationString);
 
         sCurrentLocation = String.format("Latitude - %s, Longitude - %s", LOC_LATITUDE, LOC_LONGITUDE);
 
