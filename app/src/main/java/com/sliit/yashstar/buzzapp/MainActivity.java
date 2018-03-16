@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity
         LOC_LATITUDE = lat;
         LOC_LONGITUDE = lon;
         sLocationString = String.format("https://www.google.com/maps/?q=%s,%s", LOC_LATITUDE, LOC_LONGITUDE);
-        SMS_MESSAGE = String.format("Please send cheese koththu, Moda Yash!! - %s", sLocationString);
+        SMS_MESSAGE = String.format("Please send cheese koththu, Bathala star!! - %s", sLocationString);
 
         sCurrentLocation = String.format("Latitude - %s, Longitude - %s", LOC_LATITUDE, LOC_LONGITUDE);
 
