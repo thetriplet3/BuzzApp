@@ -2,6 +2,7 @@ package com.sliit.yashstar.buzzapp;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,12 +10,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Telephony;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -33,13 +37,18 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
 
-    private List<String> lstNumbers = new ArrayList<String>();
+    private List<String> lstNumbers = new ArrayList<>();
+    private Map<String, String> lstSentNumbers = new HashMap<>();
+    private Map<String, String> lstDeliveredNumbers = new HashMap<>();
+
     private FusedLocationProviderClient mFusedLocationClient;
 
     private SmsManager smsManager;
@@ -255,21 +264,41 @@ public class MainActivity extends AppCompatActivity
 
     private void handleReceiveResults() {
         smsResultsReceiver = new BroadcastReceiver() {
+            @SuppressLint("NewApi")
             @Override
             public void onReceive(Context context, Intent intent) {
                 String sToastMessage = "Blah";
+                String sStatus = null;
                 String smsReceiveAction = intent.getAction();
                 String smsReceiveNumber = intent.getStringExtra("NUMBER");
 
                 if(smsReceiveAction.equals(SMS_SENT)) {
-                    sToastMessage = String.format("Message sent to %s", smsReceiveNumber);
+                    sStatus = getSMSSentStatus(getResultCode());
+                    sToastMessage = String.format("Message sent to %s - Status %s ", smsReceiveNumber, sStatus);
                     Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
+                    lstSentNumbers.put(smsReceiveNumber, sStatus);
+
                     if (!lstNumbers.isEmpty()) {
                         sendNextMessage();
                     }
                 }
                 else if(smsReceiveAction.equals(SMS_DELIVERED)) {
-                    //sToastMessage = String.format("Message delivered to %s", smsReceiveNumber);
+                    SmsMessage smsMsg = null;
+
+                    byte[] pdu = intent.getByteArrayExtra("pdu");
+                    String format = intent.getStringExtra("format");
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && format != null) {
+                        smsMsg = SmsMessage.createFromPdu(pdu, format);
+                    }
+                    else {
+                        smsMsg = SmsMessage.createFromPdu(pdu);
+                    }
+
+                    sStatus = getSMSSentStatus(smsMsg.getStatus());
+                    sToastMessage = String.format("Message delivered to %s - Status %s ", smsReceiveNumber, sStatus);
+                    Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
+                    lstDeliveredNumbers.put(smsReceiveNumber, sStatus);
                 }
             }
         };
@@ -288,5 +317,37 @@ public class MainActivity extends AppCompatActivity
 
         txtCurrentLocation.setText(sCurrentLocation);
         btnSend.setEnabled(true);
+    }
+
+    private String getSMSDeliveryStatus(int resultCode) {
+        switch (resultCode) {
+            case Telephony.Sms.STATUS_COMPLETE:
+                return "STATUS_COMPLETE";
+            case Telephony.Sms.STATUS_FAILED:
+                return "STATUS_FAILED";
+            case Telephony.Sms.STATUS_PENDING:
+                return "STATUS_PENDING";
+            case Telephony.Sms.STATUS_NONE:
+                return "STATUS_NONE";
+            default:
+                return "STATUS_UNKNOWN";
+        }
+    }
+
+    String getSMSSentStatus(int resultCode) {
+        switch (resultCode) {
+            case Activity.RESULT_OK:
+                return "RESULT_OK";
+            case SmsManager.RESULT_ERROR_GENERIC_FAILURE:
+                return "RESULT_ERROR_GENERIC_FAILURE";
+            case SmsManager.RESULT_ERROR_RADIO_OFF:
+                return "RESULT_ERROR_RADIO_OFF";
+            case SmsManager.RESULT_ERROR_NULL_PDU:
+                return "RESULT_ERROR_NULL_PDU";
+            case SmsManager.RESULT_ERROR_NO_SERVICE:
+                return "RESULT_ERROR_NO_SERVICE";
+            default:
+                return "RESULT_ERROR_UNKNOWN";
+        }
     }
 }
