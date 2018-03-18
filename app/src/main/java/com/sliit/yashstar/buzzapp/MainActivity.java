@@ -282,8 +282,8 @@ public class MainActivity extends AppCompatActivity
                 smsDeliveryIntent.putExtra("NUMBER", number);
                 smsDeliveryIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
 
-                smsSentPendingIntent = PendingIntent.getBroadcast(this, 0, smsSentIntent, 0);
-                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, 0, smsDeliveryIntent, 0);
+                smsSentPendingIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsSentIntent, PendingIntent.FLAG_ONE_SHOT);
+                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsDeliveryIntent, PendingIntent.FLAG_ONE_SHOT);
                 InsertLogRecord(LOG_CURRENT_TIMESTAMP, number);
 
                 smsManager.sendTextMessage(number, null, SMS_MESSAGE, smsSentPendingIntent, smsSentDeliveredIntent);
@@ -315,8 +315,8 @@ public class MainActivity extends AppCompatActivity
                 smsDeliveryIntent.putExtra("NUMBER", number);
                 smsDeliveryIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
 
-                smsSentPendingIntent = PendingIntent.getBroadcast(this, 0, smsSentIntent, 0);
-                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, 0, smsDeliveryIntent, 0);
+                smsSentPendingIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsSentIntent, PendingIntent.FLAG_ONE_SHOT);
+                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsDeliveryIntent, PendingIntent.FLAG_ONE_SHOT);
 
                 final PendingIntent execSmsSentPendingIntent = smsSentPendingIntent;
                 final PendingIntent execSmsSentDeliveredIntent = smsSentDeliveredIntent;
