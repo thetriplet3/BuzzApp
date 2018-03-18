@@ -21,6 +21,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -44,6 +45,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -56,8 +63,8 @@ public class MainActivity extends AppCompatActivity
     private FusedLocationProviderClient mFusedLocationClient;
 
     private SmsManager smsManager;
-    private IntentFilter smsIntentFilter;
-    private BroadcastReceiver smsResultsReceiver;
+    private BroadcastReceiver smsSendResultsReceiver;
+    private BroadcastReceiver smsDeliveryResultsReceiver;
 
     private String SMS_MESSAGE = null;
     private String LOC_LATITUDE = null;
@@ -115,23 +122,32 @@ public class MainActivity extends AppCompatActivity
         setLocation();
 
         smsManager = SmsManager.getDefault();
-
-        smsIntentFilter = new IntentFilter();
-        smsIntentFilter.addAction(SMS_SENT);
-        smsIntentFilter.addAction(SMS_DELIVERED);
         handleReceiveResults();
+
+        Log.i("TTT.onCreate", "registered broadcasters ");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver(smsResultsReceiver, smsIntentFilter);
+        registerReceiver(smsSendResultsReceiver, new IntentFilter(SMS_SENT));
+        registerReceiver(smsDeliveryResultsReceiver, new IntentFilter(SMS_DELIVERED));
+        Log.i("TTT.onResume", "registered broadcasters ");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        unregisterReceiver(smsResultsReceiver);
+        //unregisterReceiver(smsSendResultsReceiver);
+        //unregisterReceiver(smsDeliveryResultsReceiver);
+        //Log.i("TTT.onPause", "unregistered broadcasters ");
+    }
+
+    @Override
+    protected  void onDestroy() {
+        unregisterReceiver(smsSendResultsReceiver);
+        unregisterReceiver(smsDeliveryResultsReceiver);
+        super.onDestroy();
     }
 
     //Menu related code
@@ -201,7 +217,9 @@ public class MainActivity extends AppCompatActivity
 
         if(true) {
             SMS_MESSAGE = Util.GetSOSMessage(this);
-            sendMessage();
+            bulkSendWithThreads();
+            //bulkSend();
+            //sendMessage();
         }
         else {
             SMS_MESSAGE = "Please send help!";
@@ -210,8 +228,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void loadNumbers() {
-        //lstNumbers.add("0773746968");
-        lstNumbers.add("0773387575");
+        lstNumbers.add("0773387575"); //Trat
+        lstNumbers.add("0773746968"); //Yash
+        //lstNumbers.add("0777391244"); //pesu
+        //lstNumbers.add("0770422390"); //daree
+        //lstNumbers.add("0766420930"); //uvini
+        /*lstNumbers.add("0773612218"); //janith
+        lstNumbers.add("0773946070"); //aaq
+        lstNumbers.add("0774306392"); //bhana
+        lstNumbers.add("0777225877"); //anji
+        lstNumbers.add("0775869055"); //pancha
+        lstNumbers.add("0773387575"); //Trat*/
     }
 
     private void checkAndGrantPermission() {
@@ -239,6 +266,93 @@ public class MainActivity extends AppCompatActivity
         sendNextMessage();
     }
 
+
+    private void bulkSend() {
+        PendingIntent smsSentPendingIntent;
+        PendingIntent smsSentDeliveredIntent;
+        Intent smsSentIntent = new Intent(SMS_SENT);
+        Intent smsDeliveryIntent = new Intent(SMS_DELIVERED);
+
+        for(String number : lstNumbers) {
+            try {
+                Thread.sleep(3000);
+
+                smsSentIntent.putExtra("NUMBER", number);
+                smsSentIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
+                smsDeliveryIntent.putExtra("NUMBER", number);
+                smsDeliveryIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
+
+                smsSentPendingIntent = PendingIntent.getBroadcast(this, 0, smsSentIntent, 0);
+                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, 0, smsDeliveryIntent, 0);
+                InsertLogRecord(LOG_CURRENT_TIMESTAMP, number);
+
+                smsManager.sendTextMessage(number, null, SMS_MESSAGE, smsSentPendingIntent, smsSentDeliveredIntent);
+                Log.i("TTT.SendNexMessage", "Message send to " + number);
+                SMS_CODE++;
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
+
+        }
+
+    }
+
+    private void bulkSendWithThreads() {
+        PendingIntent smsSentPendingIntent;
+        PendingIntent smsSentDeliveredIntent;
+        Intent smsSentIntent = new Intent(SMS_SENT);
+        Intent smsDeliveryIntent = new Intent(SMS_DELIVERED);
+
+        BlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(3, true);
+        RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
+        ExecutorService executor = new ThreadPoolExecutor(3, 3, 0L, TimeUnit.MILLISECONDS, queue, handler);
+        try {
+            for(String number : lstNumbers) {
+                smsSentIntent.putExtra("NUMBER", number);
+                smsSentIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
+                smsDeliveryIntent.putExtra("NUMBER", number);
+                smsDeliveryIntent.putExtra("LOG_TIMESTAMP", LOG_CURRENT_TIMESTAMP);
+
+                smsSentPendingIntent = PendingIntent.getBroadcast(this, 0, smsSentIntent, 0);
+                smsSentDeliveredIntent = PendingIntent.getBroadcast(this, 0, smsDeliveryIntent, 0);
+
+                final PendingIntent execSmsSentPendingIntent = smsSentPendingIntent;
+                final PendingIntent execSmsSentDeliveredIntent = smsSentDeliveredIntent;
+                final String execNumber = number;
+
+                executor.execute(new Runnable() {
+
+                    @Override
+                    public void run() {
+
+                        InsertLogRecord(LOG_CURRENT_TIMESTAMP, execNumber);
+
+                        smsManager.sendTextMessage(execNumber, null, SMS_MESSAGE, execSmsSentPendingIntent, execSmsSentDeliveredIntent);
+                        Log.i("TTT.SendNexMessage", "Message send to " + execNumber);
+                        }
+                    });
+
+                SMS_CODE++;
+
+
+            }
+            executor.shutdown();
+            while (executor.isTerminated() == false){
+                Thread.sleep(50);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+
+
+
+    }
+
     private void sendNextMessage() {
         PendingIntent smsSentPendingIntent;
         PendingIntent smsSentDeliveredIntent;
@@ -254,8 +368,8 @@ public class MainActivity extends AppCompatActivity
         smsSentDeliveredIntent = PendingIntent.getBroadcast(this, SMS_CODE, smsDeliveryIntent, PendingIntent.FLAG_ONE_SHOT);
 
         InsertLogRecord(LOG_CURRENT_TIMESTAMP, lstNumbers.get(0));
-        smsManager.sendTextMessage(lstNumbers.get(0), null, SMS_MESSAGE, smsSentPendingIntent, smsSentDeliveredIntent);
-
+        //smsManager.sendTextMessage(lstNumbers.get(0), null, SMS_MESSAGE, smsSentPendingIntent, smsSentDeliveredIntent);
+        Log.i("TTT.SendNexMessage", "Message send to " + lstNumbers.get(0));
         SMS_CODE++;
         lstNumbers.remove(0);
     }
@@ -275,6 +389,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     }
                 });
+        /*
         mLocationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -286,11 +401,12 @@ public class MainActivity extends AppCompatActivity
                 }
             };
         };
+        */
 
     }
 
     private void handleReceiveResults() {
-        smsResultsReceiver = new BroadcastReceiver() {
+        smsSendResultsReceiver = new BroadcastReceiver() {
             @SuppressLint("NewApi")
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -308,11 +424,22 @@ public class MainActivity extends AppCompatActivity
                     ModifyLogRecord(smsLogTimeStamp, smsReceiveNumber, sStatus, null);
                     lstSentNumbers.put(smsReceiveNumber, sStatus);
 
-                    if (!lstNumbers.isEmpty()) {
-                        sendNextMessage();
-                    }
                 }
-                else if(smsReceiveAction.equals(SMS_DELIVERED)) {
+
+            }
+        };
+
+        smsDeliveryResultsReceiver = new BroadcastReceiver() {
+            @SuppressLint("NewApi")
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String sToastMessage = "Blah";
+                String sStatus = null;
+                String smsReceiveAction = intent.getAction();
+                String smsReceiveNumber = intent.getStringExtra("NUMBER");
+                String smsLogTimeStamp = intent.getStringExtra("LOG_TIMESTAMP");
+
+                if(smsReceiveAction.equals(SMS_DELIVERED)) {
                     SmsMessage smsMsg = null;
 
                     byte[] pdu = intent.getByteArrayExtra("pdu");
@@ -328,16 +455,6 @@ public class MainActivity extends AppCompatActivity
                     sStatus = getSMSDeliveryStatus(smsMsg.getStatus());
                     lstDeliveredNumbers.put(smsReceiveNumber, sStatus);
                     ModifyLogRecord(smsLogTimeStamp, smsReceiveNumber, null, sStatus);
-                }
-
-                if(lstNumbers.isEmpty()) {
-                    if(NO_OF_SENT_MSGS == NO_OF_RECIPIENTS) {
-                        sToastMessage = String.format("Message sent to all recipients.");
-                    }
-                    else {
-                        sToastMessage = String.format("Message sent to %d out of %d recipients.", NO_OF_SENT_MSGS, NO_OF_RECIPIENTS);
-                    }
-                    Toast.makeText(context, sToastMessage, Toast.LENGTH_SHORT).show();
                 }
 
             }
