@@ -200,6 +200,7 @@ public class MainActivity extends AppCompatActivity
         LOG_CURRENT_TIMESTAMP = Util.GetCurrentDateTime();
 
         if(true) {
+            SMS_MESSAGE = Util.GetSOSMessage(this);
             sendMessage();
         }
         else {
@@ -350,12 +351,14 @@ public class MainActivity extends AppCompatActivity
         LOC_LATITUDE = lat;
         LOC_LONGITUDE = lon;
         sLocationString = String.format("https://www.google.com/maps/?q=%s,%s", LOC_LATITUDE, LOC_LONGITUDE);
-        SMS_MESSAGE = String.format("PLEASE SEND HELP!! - %s", sLocationString);
+        //SMS_MESSAGE = String.format("PLEASE SEND HELP!! - %s", sLocationString);
 
         sCurrentLocation = String.format("Latitude - %s, Longitude - %s", LOC_LATITUDE, LOC_LONGITUDE);
 
         txtCurrentLocation.setText(sCurrentLocation);
         btnSend.setEnabled(true);
+
+        Util.SetCurretLocation(this, lat, lon);
     }
 
     private String getSMSDeliveryStatus(int resultCode) {

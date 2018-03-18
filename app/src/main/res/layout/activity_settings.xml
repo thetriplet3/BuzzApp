@@ -38,6 +38,7 @@
                 android:contextClickable="false"
                 android:editable="false"
                 android:ems="10"
+                android:focusedByDefault="false"
                 android:inputType="textMultiLine"
                 android:lines="5"
                 android:scrollbars="vertical"
@@ -49,12 +50,13 @@
                 app:layout_constraintVertical_bias="0.09" />
 
             <CheckBox
-                android:id="@+id/checkBox"
+                android:id="@+id/chbLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
+                android:checked="true"
                 android:text="@string/settings_location"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.201"
@@ -85,8 +87,9 @@
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_save"
                 android:layout_marginTop="16dp"
+                android:onClick="btnSaveOnClick"
+                android:text="@string/settings_save"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent" />
