@@ -7,4 +7,12 @@
     <string name="action_settings">Settings</string>
 
     <string name="btnSend_text">Send</string>
+
+    <string name="menu_logs">Logs</string>
+
+    <string name="settings_message">Message</string>
+    <string name="settings_sos">SOS Message</string>
+    <string name="settings_location">Add current location to the message</string>
+    <string name="settings_preview">Preview SOS Message</string>
+    <string name="settings_save">Save</string>
 </resources>

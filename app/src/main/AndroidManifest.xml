@@ -23,9 +23,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LogHeaderActivity"
-            android:parentActivityName="com.sliit.yashstar.buzzapp.MainActivity" >
-        </activity>
+        <activity
+            android:name=".LogHeaderActivity"
+            android:parentActivityName=".MainActivity"></activity>
+        <activity android:name=".SettingsActivity"
+                  android:parentActivityName=".MainActivity"></activity>
     </application>
 
 </manifest>
