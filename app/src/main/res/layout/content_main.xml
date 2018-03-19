@@ -10,11 +10,12 @@
 
     <Button
         android:id="@+id/btnSend"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="228dp"
+        android:layout_marginTop="104dp"
+        android:background="@drawable/roundedbutton"
         android:onClick="btnSendOnClick"
         android:text="@string/btnSend_text"
         app:layout_constraintEnd_toEndOf="parent"

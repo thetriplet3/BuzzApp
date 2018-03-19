@@ -215,15 +215,17 @@ public class MainActivity extends AppCompatActivity
         NO_OF_RECIPIENTS = lstNumbers.size();
         LOG_CURRENT_TIMESTAMP = Util.GetCurrentDateTime();
 
+        Log.i("TTT.btnSendOnClick", "Click!");
+
         if(true) {
             SMS_MESSAGE = Util.GetSOSMessage(this);
-            bulkSendWithThreads();
+            //bulkSendWithThreads();
             //bulkSend();
             //sendMessage();
         }
         else {
             SMS_MESSAGE = "Please send help!";
-            sendMessage();
+            //sendMessage();
         }
     }
 
