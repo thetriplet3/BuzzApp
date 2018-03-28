@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 import android.view.Menu;
@@ -26,6 +27,7 @@ public class Contact_list extends AppCompatActivity {
 
     ListView listContacts;
     ArrayList arrayContacts;
+    ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +45,8 @@ public class Contact_list extends AppCompatActivity {
             }
         });
 
+        Button btnCreate = (Button) findViewById(R.id.createList);
+        btnCreate.setVisibility(View.INVISIBLE);
         listContacts = (ListView) findViewById(R.id.contactList);
 
         showContacts();
@@ -57,18 +61,17 @@ public class Contact_list extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id)
+        {
+            case R.id.createList:
+                onCreateList();
+                break;
         }
-
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override
@@ -133,7 +136,7 @@ public class Contact_list extends AppCompatActivity {
                 arrayContacts.add(output.toString());
             }
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, arrayContacts);
+            adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, arrayContacts);
             listContacts.setAdapter(adapter);
         }
 
@@ -151,5 +154,20 @@ public class Contact_list extends AppCompatActivity {
             // Android version is lesser than 6.0 or the permission is already granted.
             getContacts();
         }
+    }
+
+    private void onCreateList()
+    {
+        //set the list view to have multi selectable checkboxes
+        listContacts.setChoiceMode(listContacts.CHOICE_MODE_MULTIPLE);
+        adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, android.R.id.text1, arrayContacts);
+
+
+        FloatingActionButton btnAdd = (FloatingActionButton) findViewById(R.id.fab);
+        btnAdd.hide();
+        Button btnCreate = (Button) findViewById(R.id.createList);
+        btnCreate.setVisibility(View.VISIBLE);
+
+        listContacts.setAdapter(adapter);
     }
 }
