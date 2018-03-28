@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+import android.view.Menu;
 
 import java.util.ArrayList;
 
@@ -42,31 +43,16 @@ public class Contact_list extends AppCompatActivity {
             }
         });
 
-        listContacts = (ListView)findViewById(R.id.contactList);
-
-        String[] listValues = new String[]
-                {
-                        "Tharushan",
-                        "Anjali",
-                        "Panchali",
-                        "Supuni",
-                        "Lakshan",
-                        "Janith",
-                        "Bhanuka",
-                        "Nipuni"
-                };
-
-
-
         listContacts = (ListView) findViewById(R.id.contactList);
 
         showContacts();
     }
 
+    //Menu item to create a custom contact list to send the message
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.create_list, menu);
         return true;
     }
 
@@ -166,5 +152,4 @@ public class Contact_list extends AppCompatActivity {
             getContacts();
         }
     }
-
 }
