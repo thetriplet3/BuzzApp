@@ -24,4 +24,7 @@
     <string name="str_current_loc_lat">CURRENT_LOCATION_LATITUDE</string>
     <string name="str_current_loc_lon">CURRENT_LOCATION_LONGITUDE</string>
     <string name="str_sos_message">SOS_MESSAGE</string>
+    <string name="title_activity_contact_list">Contact_list</string>
+
+    <string name="menu_contact_list">Contact List</string>
 </resources>
