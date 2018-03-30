@@ -8,6 +8,9 @@
 
     <string name="btnSend_text">Send</string>
 
+    <string name="title_activity_contact_list">Contact_list</string>
+
+    <string name="menu_contact_list">Contact List</string>
     <string name="menu_logs">Logs</string>
 
     <string name="settings_default_message">HELP!!</string>

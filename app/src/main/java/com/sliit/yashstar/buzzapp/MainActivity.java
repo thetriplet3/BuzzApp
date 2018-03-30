@@ -201,6 +201,10 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_send) {
             MainActivity.this.startActivity(new Intent(getApplicationContext(), LogHeaderActivity.class));
         }
+        else if (id == R.id.nav_contact_list)
+        {
+            MainActivity.this.startActivity(new Intent(getApplicationContext(), Contact_list.class));
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
