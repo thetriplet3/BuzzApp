@@ -67,8 +67,8 @@ public class MainActivity extends AppCompatActivity
     private BroadcastReceiver smsDeliveryResultsReceiver;
 
     private String SMS_MESSAGE = null;
-    private String LOC_LATITUDE = null;
-    private String LOC_LONGITUDE = null;
+    public static String LOC_LATITUDE = null;
+    public static String LOC_LONGITUDE = null;
     private String LOG_CURRENT_TIMESTAMP = null;
 
     private final String SMS_SENT = "BUZZAPP_SMS_SENT";
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity
 
 
         txtCurrentLocation = (TextView)findViewById(R.id.txtCurrentLocation);
-        txtCurrentLocation.setText("Fetching curent location...");
+        //txtCurrentLocation.setText("Fetching curent location...");
         btnSend = (Button) findViewById(R.id.btnSend);
         btnSend.setEnabled(false);
 
@@ -354,9 +354,6 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-
-
-
     }
 
     private void sendNextMessage() {
@@ -545,6 +542,14 @@ public class MainActivity extends AppCompatActivity
         }
 
         buzzDB.update(BuzzDBSchema.SMSLog.TABLE_NAME, logValues, selection, selectionArgs);
+    }
+
+    protected void location_OnClick(View view) {
+        Intent mapIntent = new Intent(this, MapsActivity.class);
+        mapIntent.putExtra("LAT", LOC_LATITUDE);
+        mapIntent.putExtra("LON", LOC_LONGITUDE);
+
+        startActivity(mapIntent);
     }
 
 }
