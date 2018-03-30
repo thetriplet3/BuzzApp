@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
         }
         else if (id == R.id.nav_contact_list)
         {
-            MainActivity.this.startActivity(new Intent(getApplicationContext(), Contact_list.class));
+            MainActivity.this.startActivity(new Intent(getApplicationContext(), CustomContactsActivity.class ));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

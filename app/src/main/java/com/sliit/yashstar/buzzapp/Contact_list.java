@@ -2,6 +2,7 @@ package com.sliit.yashstar.buzzapp;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 import android.view.Menu;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class Contact_list extends AppCompatActivity {
 
@@ -40,8 +42,13 @@ public class Contact_list extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+         Intent addContact = new Intent(Intent.ACTION_INSERT);
+         addContact.setType(ContactsContract.Contacts.CONTENT_TYPE);
+         startActivity(addContact);
+         adapter.notifyDataSetChanged();
+         listContacts.setAdapter(adapter);
             }
         });
 
@@ -110,22 +117,19 @@ public class Contact_list extends AppCompatActivity {
 
         if(cursor.getCount() > 0)
         {
-            while (cursor.moveToNext())
-            {
+            while (cursor.moveToNext()) {
                 output = new StringBuffer();
 
                 String contactId = cursor.getString(cursor.getColumnIndex(CONTACT_ID));
                 String contactName = cursor.getString(cursor.getColumnIndex(CONTACT_NAME));
                 int hasContactNo = Integer.parseInt(cursor.getString(cursor.getColumnIndex(HAS_CONTACT_NO)));
 
-                if(hasContactNo > 0)
-                {
+                if (hasContactNo > 0) {
                     output.append("\n" + contactName);
 
-                    Cursor cursorPhone  = contentResolver.query(PHONE_URI, null, PHONE_CONTACT_ID + " = ? ", new String[]{contactId}, null);
+                    Cursor cursorPhone = contentResolver.query(PHONE_URI, null, PHONE_CONTACT_ID + " = ? ", new String[]{contactId}, null);
 
-                    while (cursorPhone.moveToNext())
-                    {
+                    while (cursorPhone.moveToNext()) {
                         contactNo = cursorPhone.getString(cursorPhone.getColumnIndex(PHONE_CONTACT_NO));
                         output.append("\n" + contactNo);
                     }
@@ -135,7 +139,6 @@ public class Contact_list extends AppCompatActivity {
 
                 arrayContacts.add(output.toString());
             }
-
             adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, android.R.id.text1, arrayContacts);
             listContacts.setAdapter(adapter);
         }

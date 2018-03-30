@@ -17,4 +17,12 @@ public final class BuzzDBSchema {
         public static final String COL_SMS_SENT_STATUS = "LogSMSSentStatus";
         public static final String COL_SMS_DELIVERY_STATUS = "LogSMSDeliveryStatus";
     }
+
+    public static class CustomContacts implements BaseColumns{
+        public static final String TABLE_NAME = "CustomContacts";
+        public static final String COL_CONTACT_ID = "ContactId";
+        public static final String COL_CONTACT_NAME = "ContactName";
+        public static final String COL_CONTACT_NO = "ContactNo";
+
+    }
 }

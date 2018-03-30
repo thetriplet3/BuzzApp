@@ -23,6 +23,15 @@ public class BuzzDBHandler extends SQLiteOpenHelper{
     private static final String SQL_DELETE_SMSLOG_TAB =
             "DROP TABLE IF EXISTS " + BuzzDBSchema.SMSLog.TABLE_NAME ;
 
+    private static final String SQL_CREATE_CUSTOMCONTACTS_TAB =
+            "CREATE TABLE " + BuzzDBSchema.CustomContacts.TABLE_NAME + " (" +
+                    BuzzDBSchema.CustomContacts.COL_CONTACT_ID + " INTEGER PRIMARY KEY," +
+                    BuzzDBSchema.CustomContacts.COL_CONTACT_NAME + " TEXT," +
+                    BuzzDBSchema.CustomContacts.COL_CONTACT_NO + " TEXT "+
+                    ")";
+    private static final String SQL_DELETE_CUSTOMCONTACTS_TAB =
+            "DROP TABLE IF EXISTS " + BuzzDBSchema.CustomContacts.TABLE_NAME ;
+
     public BuzzDBHandler(Context context) {
         super(context.getApplicationContext(), DB_NAME, null, 1);
     }
@@ -30,11 +39,13 @@ public class BuzzDBHandler extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_SMSLOG_TAB);
+        db.execSQL(SQL_CREATE_CUSTOMCONTACTS_TAB);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(SQL_DELETE_SMSLOG_TAB);
+        db.execSQL(SQL_DELETE_CUSTOMCONTACTS_TAB);
         onCreate(db);
     }
 }
