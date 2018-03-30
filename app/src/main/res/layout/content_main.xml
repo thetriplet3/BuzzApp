@@ -29,6 +29,10 @@
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="132dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:onClick="location_OnClick"
+        android:text="@string/str_fetching_location"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnSend" />

@@ -18,10 +18,14 @@
     <string name="settings_preview">Preview SOS Message</string>
     <string name="settings_save">Save</string>
 
+    <string name="map_button_text">Set Location</string>
+
     <string name="str_default_message">STR_DEFAULT_MESSAGE</string>
     <string name="str_enable_location">STR_ENABLE_LOCATION</string>
     <string name="str_saved_info">SAVED_INFO</string>
     <string name="str_current_loc_lat">CURRENT_LOCATION_LATITUDE</string>
     <string name="str_current_loc_lon">CURRENT_LOCATION_LONGITUDE</string>
     <string name="str_sos_message">SOS_MESSAGE</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="str_fetching_location">Fetching Location...</string>
 </resources>
