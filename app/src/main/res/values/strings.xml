@@ -31,4 +31,9 @@
     <string name="str_sos_message">SOS_MESSAGE</string>
     <string name="title_activity_maps">Map</string>
     <string name="str_fetching_location">Fetching Location...</string>
+
+    <string name="warn_create_list">There is no existing contact list. Do you want to create one?</string>
+    <string name="warn_title">Create a Contact List</string>
+    <string name="warn_btn_Yes">Yes</string>
+    <string name="warn_btn_later">Later</string>
 </resources>

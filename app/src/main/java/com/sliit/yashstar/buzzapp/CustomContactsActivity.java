@@ -1,14 +1,18 @@
 package com.sliit.yashstar.buzzapp;
 
+import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -17,12 +21,15 @@ import java.util.List;
 public class CustomContactsActivity extends AppCompatActivity {
 
     ListView listCustomContactsList;
+    TextView txtAddList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom_contacts);
         listCustomContactsList = (ListView) findViewById(R.id.custom_contacts);
+        txtAddList = (TextView) findViewById(R.id.add_contacts);
+        txtAddList.setVisibility(View.VISIBLE);
 
         PopulateList();
     }
@@ -73,16 +80,12 @@ public class CustomContactsActivity extends AppCompatActivity {
                 null
         );
 
-//        Cursor getCustomContacts = null;
-//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN) {
-//            getCustomContacts = buzzDB.rawQuery("SELECT DISTINCT * FROM " + BuzzDBSchema.CustomContacts.TABLE_NAME, null,null);
-//        }
-
         if (getCustomContacts.getCount() == 0) {
             dlgWarning();
         }
         else
         {
+            txtAddList.setVisibility(View.INVISIBLE);
             while (getCustomContacts.moveToNext()) {
                 String contactId = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_ID));
                 String contactName = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_NAME));
@@ -97,24 +100,26 @@ public class CustomContactsActivity extends AppCompatActivity {
 
     private void dlgWarning()
     {
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.warn_create_list)
+                .setTitle(R.string.warn_title);
+
+        builder.setPositiveButton(R.string.warn_btn_Yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                switch (which){
-                    case DialogInterface.BUTTON_POSITIVE:
-                        //Yes button clicked
-                        break;
-
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        //No button clicked
-                        break;
-                }
+                Intent intent = new Intent(getApplicationContext(), Contact_list.class);
+                startActivity(intent);
             }
-        };
+        });
+        builder.setNegativeButton(R.string.warn_btn_later, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
-        builder.setMessage("There is no contact list available. Create new list?").setPositiveButton("Yes", dialogClickListener)
-                .setNegativeButton("No", dialogClickListener).show();
+        AlertDialog dlgWarn = builder.create();
+        dlgWarn.show();
     }
 
 }

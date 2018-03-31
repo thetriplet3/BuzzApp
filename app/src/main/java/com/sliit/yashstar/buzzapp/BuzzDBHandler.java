@@ -33,7 +33,7 @@ public class BuzzDBHandler extends SQLiteOpenHelper{
             "DROP TABLE IF EXISTS " + BuzzDBSchema.CustomContacts.TABLE_NAME ;
 
     public BuzzDBHandler(Context context) {
-        super(context.getApplicationContext(), DB_NAME, null, 1);
+        super(context.getApplicationContext(), DB_NAME, null, 2);
     }
 
     @Override
