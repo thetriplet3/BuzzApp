@@ -9,8 +9,11 @@ import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,35 +34,36 @@ public class CustomContactsActivity extends AppCompatActivity {
         txtAddList = (TextView) findViewById(R.id.add_contacts);
         txtAddList.setVisibility(View.VISIBLE);
 
+        populateContacts();
         PopulateList();
     }
 
     //Insert selected contacts in to the SQLite database
-    public void InsertContact(String contactId, String contactName, String[] contactNo)
-    {
-        int index = 0;
-        String concatContactNo = "";
-        BuzzDBHandler dbHandler = new BuzzDBHandler(this);
-        SQLiteDatabase database = dbHandler.getWritableDatabase();
-
-        if(contactNo.length > 1)
-        {
-            for(int i = 0; i<contactNo.length; i++)
-            {
-                concatContactNo += contactNo[i].toString() + "#";
-            }
-        }
-
-        String sql =
-                "INSERT OR REPLACE INTO " + BuzzDBSchema.CustomContacts.TABLE_NAME +
-                "( " + BuzzDBSchema.CustomContacts.COL_CONTACT_ID + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NAME + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NO+ " )" +
-                "VALUES( '" + contactId+ "' , ' " +contactName+ "' , ' " + concatContactNo+ "' )" ;
-        database.execSQL(sql);
-    }
+//    public void InsertContact(String contactId, String contactName, String[] contactNo)
+//    {
+//        int index = 0;
+//        String concatContactNo = "";
+//        BuzzDBHandler dbHandler = new BuzzDBHandler(this);
+//        SQLiteDatabase database = dbHandler.getWritableDatabase();
+//
+//        if(contactNo.length > 1)
+//        {
+//            for(int i = 0; i<contactNo.length; i++)
+//            {
+//                concatContactNo += contactNo[i].toString() + "#";
+//            }
+//        }
+//
+//        String sql =
+//                "INSERT OR REPLACE INTO " + BuzzDBSchema.CustomContacts.TABLE_NAME +
+//                "( " + BuzzDBSchema.CustomContacts.COL_CONTACT_ID + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NAME + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NO+ " )" +
+//                "VALUES( '" + contactId+ "' , ' " +contactName+ "' , ' " + concatContactNo+ "' )" ;
+//        database.execSQL(sql);
+//    }
 
     private void PopulateList() {
         BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
-        SQLiteDatabase buzzDB = buzzDBHandler.getReadableDatabase();
+        SQLiteDatabase buzzDB = buzzDBHandler.getWritableDatabase();
         List<String> listCustomContacts = new ArrayList<String>();
 
         String[] selectedColums = {
@@ -85,11 +89,14 @@ public class CustomContactsActivity extends AppCompatActivity {
         }
         else
         {
+            int count = getCustomContacts.getCount();
             txtAddList.setVisibility(View.INVISIBLE);
             while (getCustomContacts.moveToNext()) {
-                String contactId = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_ID));
+                //String contactId = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_ID));
                 String contactName = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_NAME));
                 String contactNo = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_NO));
+                //String contactNo = "trying";
+                listCustomContacts.add(String.format("%s\n%s",  contactName, contactNo));
             }
 
             getCustomContacts.close();
@@ -120,6 +127,61 @@ public class CustomContactsActivity extends AppCompatActivity {
 
         AlertDialog dlgWarn = builder.create();
         dlgWarn.show();
+    }
+
+    public void populateContacts()
+    {
+        Button btnAddContactList = (Button)findViewById(R.id.add_contacts);
+
+        btnAddContactList.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CustomContactsActivity.this, Contact_list.class);
+                startActivityForResult(intent, 1);
+            }
+        });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent)
+    {
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if(requestCode == 2)
+        {
+            //PopulateList();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.remove_list, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        int id = item.getItemId();
+
+        switch (id)
+        {
+            case R.id.removeList:
+                removeContactList();
+                break;
+        }
+        return true;
+    }
+
+    private void removeContactList()
+    {
+        BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
+        SQLiteDatabase buzzDB = buzzDBHandler.getWritableDatabase();
+        String sql = "DELETE FROM " + BuzzDBSchema.CustomContacts.TABLE_NAME;
+        buzzDB.execSQL(sql);
+        txtAddList.setVisibility(View.VISIBLE);
+
     }
 
 }
