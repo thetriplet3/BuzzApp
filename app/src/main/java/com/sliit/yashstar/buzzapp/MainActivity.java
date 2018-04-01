@@ -7,9 +7,11 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Location;
 import android.os.Build;
@@ -19,6 +21,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -35,6 +38,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dd.CircularProgressButton;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationResult;
@@ -93,15 +97,6 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -118,6 +113,8 @@ public class MainActivity extends AppCompatActivity
         btnSend = (Button) findViewById(R.id.btnSend);
         btnSend.setEnabled(false);
 
+        //PopulateNumbers();
+
         checkAndGrantPermission();
         setLocation();
 
@@ -132,6 +129,7 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
         registerReceiver(smsSendResultsReceiver, new IntentFilter(SMS_SENT));
         registerReceiver(smsDeliveryResultsReceiver, new IntentFilter(SMS_DELIVERED));
+        PopulateNumbers();
         Log.i("TTT.onResume", "registered broadcasters ");
     }
 
@@ -162,13 +160,15 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    /*
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
+    */
+    /*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
+    */
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -190,15 +191,10 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
+        if (id == R.id.nav_manage) {
             MainActivity.this.startActivity(new Intent(getApplicationContext(), SettingsActivity.class));
-        } else if (id == R.id.nav_send) {
+        }
+        else if (id == R.id.nav_send) {
             MainActivity.this.startActivity(new Intent(getApplicationContext(), LogHeaderActivity.class));
         }
         else if (id == R.id.nav_contact_list)
@@ -212,19 +208,27 @@ public class MainActivity extends AppCompatActivity
     }
     //endregion
 
-    protected void btnSendOnClick(View view) {
+    private void PopulateNumbers() {
         loadNumbers();
         SMS_CODE = 0;
         NO_OF_SENT_MSGS = 0;
         NO_OF_RECIPIENTS = lstNumbers.size();
         LOG_CURRENT_TIMESTAMP = Util.GetCurrentDateTime();
 
-        Log.i("TTT.btnSendOnClick", "Click!");
+        if(NO_OF_RECIPIENTS < 1) {
+            dlgWarning();
+        }
+        else {
+            btnSend.setEnabled(true);
+        }
+    }
 
-        if(true) {
+    protected void btnSendOnClick(View view) {
+
+        if(NO_OF_RECIPIENTS > 0) {
             SMS_MESSAGE = Util.GetSOSMessage(this);
             //bulkSendWithThreads();
-            //bulkSend();
+            bulkSend();
             //sendMessage();
         }
         else {
@@ -234,8 +238,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void loadNumbers() {
-        lstNumbers.add("0773387575"); //Trat
-        lstNumbers.add("0773746968"); //Yash
+        //lstNumbers.add("0773387575"); //Trat
+        //lstNumbers.add("0773746968"); //Yash
         //lstNumbers.add("0777391244"); //pesu
         //lstNumbers.add("0770422390"); //daree
         //lstNumbers.add("0766420930"); //uvini
@@ -245,6 +249,42 @@ public class MainActivity extends AppCompatActivity
         lstNumbers.add("0777225877"); //anji
         lstNumbers.add("0775869055"); //pancha
         lstNumbers.add("0773387575"); //Trat*/
+
+        BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
+        SQLiteDatabase buzzDB = buzzDBHandler.getReadableDatabase();
+
+        String[] selectedColums = {
+                BuzzDBSchema.CustomContacts.COL_CONTACT_ID,
+                BuzzDBSchema.CustomContacts.COL_CONTACT_NAME,
+                BuzzDBSchema.CustomContacts.COL_CONTACT_NO
+        };
+
+        Cursor getCustomContacts = buzzDB.query(
+                true,
+                BuzzDBSchema.CustomContacts.TABLE_NAME,
+                selectedColums,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        while (getCustomContacts.moveToNext()) {
+            String contactNo = getCustomContacts.getString(getCustomContacts.getColumnIndex(BuzzDBSchema.CustomContacts.COL_CONTACT_NO));
+            contactNo = contactNo.replace("-", "");
+
+            String[] arrayPhone = contactNo.split("[\\r\\n]+");
+
+            for(String number : arrayPhone) {
+                if(!lstNumbers.contains(number)) {
+                    lstNumbers.add(number);
+                }
+            }
+        }
+
+        getCustomContacts.close();
     }
 
     private void checkAndGrantPermission() {
@@ -279,6 +319,8 @@ public class MainActivity extends AppCompatActivity
         Intent smsSentIntent = new Intent(SMS_SENT);
         Intent smsDeliveryIntent = new Intent(SMS_DELIVERED);
 
+        Toast.makeText(this, "Sending Message...", Toast.LENGTH_SHORT).show();
+
         for(String number : lstNumbers) {
             try {
                 Thread.sleep(3000);
@@ -302,6 +344,8 @@ public class MainActivity extends AppCompatActivity
             }
 
         }
+        String sToastMessage = String.format("Message sent to %d numbers. Hang tight!", NO_OF_RECIPIENTS);
+        Toast.makeText(this, sToastMessage, Toast.LENGTH_SHORT).show();
 
     }
 
@@ -476,7 +520,7 @@ public class MainActivity extends AppCompatActivity
         sCurrentLocation = String.format("Latitude - %s, Longitude - %s", LOC_LATITUDE, LOC_LONGITUDE);
 
         txtCurrentLocation.setText(sCurrentLocation);
-        btnSend.setEnabled(true);
+        //btnSend.setEnabled(true);
 
         Util.SetCurretLocation(this, lat, lon);
     }
@@ -550,6 +594,30 @@ public class MainActivity extends AppCompatActivity
         mapIntent.putExtra("LON", LOC_LONGITUDE);
 
         startActivity(mapIntent);
+    }
+
+    private void dlgWarning()
+    {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(R.string.warn_create_list)
+                .setTitle(R.string.warn_title);
+
+        builder.setPositiveButton(R.string.warn_btn_Yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(getApplicationContext(), Contact_list.class);
+                startActivity(intent);
+            }
+        });
+        builder.setNegativeButton(R.string.warn_btn_later, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog dlgWarn = builder.create();
+        dlgWarn.show();
     }
 
 }

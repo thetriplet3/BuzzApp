@@ -27,7 +27,8 @@
         <activity
             android:name=".Contact_list"
             android:label="Contacts"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".CustomContactsActivity"></activity>
         <activity
             android:name=".LogHeaderActivity"
             android:parentActivityName=".MainActivity" />
