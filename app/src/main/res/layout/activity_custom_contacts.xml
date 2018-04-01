@@ -4,7 +4,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CustomContactsActivity">
+    tools:context=".CustomContactsActivity"
+    android:paddingTop="10dp"
+    android:paddingBottom="15dp"
+    android:paddingRight="10dp"
+    android:paddingLeft="10dp">
 
     <ListView
         android:id="@+id/custom_contacts"

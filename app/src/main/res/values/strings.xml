@@ -36,4 +36,6 @@
     <string name="warn_title">Create a Contact List</string>
     <string name="warn_btn_Yes">Yes</string>
     <string name="warn_btn_later">Later</string>
+
+    <string name="add_contact_list">Click here to add a contact list</string>
 </resources>
