@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.Menu;
@@ -72,6 +73,25 @@ public class Contact_list extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.create_list, menu);
+
+        //region Search
+        getMenuInflater().inflate(R.menu.search_list, menu);
+        MenuItem item = menu.findItem(R.id.searchList);
+        SearchView search = (SearchView)item.getActionView();
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+        //endregion
+
         return true;
     }
 
@@ -234,8 +254,8 @@ public class Contact_list extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 getSelectedContacts();
-//                Intent intent = new Intent(Contact_list.this, CustomContactsActivity.class);
-//                startActivityForResult(intent, 2);
+                Intent intent = new Intent(Contact_list.this, CustomContactsActivity.class);
+                startActivityForResult(intent, 2);
             }
         });
     }

@@ -1,6 +1,7 @@
 package com.sliit.yashstar.buzzapp;
 
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +27,7 @@ public class CustomContactsActivity extends AppCompatActivity {
 
     ListView listCustomContactsList;
     TextView txtAddList;
+    ArrayAdapter<String> simpleAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,29 +40,6 @@ public class CustomContactsActivity extends AppCompatActivity {
         populateContacts();
         PopulateList();
     }
-
-    //Insert selected contacts in to the SQLite database
-//    public void InsertContact(String contactId, String contactName, String[] contactNo)
-//    {
-//        int index = 0;
-//        String concatContactNo = "";
-//        BuzzDBHandler dbHandler = new BuzzDBHandler(this);
-//        SQLiteDatabase database = dbHandler.getWritableDatabase();
-//
-//        if(contactNo.length > 1)
-//        {
-//            for(int i = 0; i<contactNo.length; i++)
-//            {
-//                concatContactNo += contactNo[i].toString() + "#";
-//            }
-//        }
-//
-//        String sql =
-//                "INSERT OR REPLACE INTO " + BuzzDBSchema.CustomContacts.TABLE_NAME +
-//                "( " + BuzzDBSchema.CustomContacts.COL_CONTACT_ID + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NAME + ", " + BuzzDBSchema.CustomContacts.COL_CONTACT_NO+ " )" +
-//                "VALUES( '" + contactId+ "' , ' " +contactName+ "' , ' " + concatContactNo+ "' )" ;
-//        database.execSQL(sql);
-//    }
 
     private void PopulateList() {
         BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
@@ -100,7 +80,7 @@ public class CustomContactsActivity extends AppCompatActivity {
             }
 
             getCustomContacts.close();
-            ArrayAdapter<String> simpleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listCustomContacts);
+            simpleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, listCustomContacts);
             listCustomContactsList.setAdapter(simpleAdapter);
         }
     }
@@ -157,6 +137,25 @@ public class CustomContactsActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.remove_list, menu);
+
+        //region Search
+        getMenuInflater().inflate(R.menu.search_list, menu);
+        MenuItem item = menu.findItem(R.id.searchList);
+        SearchView search = (SearchView)item.getActionView();
+        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                simpleAdapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+        //endregion
+
         return true;
     }
 
