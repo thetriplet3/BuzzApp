@@ -7,9 +7,11 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabaseLockedException;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -28,6 +30,7 @@ public class CustomContactsActivity extends AppCompatActivity {
     ListView listCustomContactsList;
     TextView txtAddList;
     ArrayAdapter<String> simpleAdapter;
+    ArrayList<String> listCustomContacts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,9 @@ public class CustomContactsActivity extends AppCompatActivity {
         listCustomContactsList = (ListView) findViewById(R.id.custom_contacts);
         txtAddList = (TextView) findViewById(R.id.add_contacts);
         txtAddList.setVisibility(View.VISIBLE);
+        ((Button)findViewById(R.id.btnRemoveSelecteditem)).setVisibility(View.INVISIBLE);
+
+        deleteRecords();
 
         populateContacts();
         PopulateList();
@@ -44,7 +50,7 @@ public class CustomContactsActivity extends AppCompatActivity {
     private void PopulateList() {
         BuzzDBHandler buzzDBHandler = new BuzzDBHandler(this);
         SQLiteDatabase buzzDB = buzzDBHandler.getWritableDatabase();
-        List<String> listCustomContacts = new ArrayList<String>();
+        listCustomContacts = new ArrayList<String>();
 
         String[] selectedColums = {
                 BuzzDBSchema.CustomContacts.COL_CONTACT_ID,
@@ -129,7 +135,7 @@ public class CustomContactsActivity extends AppCompatActivity {
 
         if(requestCode == 2)
         {
-            //PopulateList();
+            PopulateList();
         }
     }
 
@@ -197,6 +203,76 @@ public class CustomContactsActivity extends AppCompatActivity {
     {
         Intent intent = new Intent(CustomContactsActivity.this, Contact_list.class);
         startActivity(intent);
+    }
+
+    private void deleteRecords()
+    {
+        FloatingActionButton btnDelete = (FloatingActionButton) findViewById(R.id.fabDelete);
+
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                multipleChoiceList();
+                //removeContactList();
+            }
+        });
+    }
+
+    private void multipleChoiceList()
+    {
+        listCustomContactsList.setChoiceMode(listCustomContactsList.CHOICE_MODE_MULTIPLE);
+        simpleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_multiple_choice, android.R.id.text1, listCustomContacts);
+        changeButton();
+        listCustomContactsList.setAdapter(simpleAdapter);
+    }
+
+    private void removeContacts()
+    {
+        SparseBooleanArray checkedItems = listCustomContactsList.getCheckedItemPositions();
+        ArrayList<String> selecteditems = new ArrayList<String>();
+        String[] valueArray;
+        String contactName;
+        String contactNo;
+
+        for(int i= 0; i < checkedItems.size(); i++)
+        {
+
+            if(checkedItems.get(i)){
+                simpleAdapter.remove(listCustomContacts.get(i));
+            }
+//            int adapterPostion = checkedItems.keyAt(i);
+//
+//            //remove the selectedItem if the item is checked
+//            if(checkedItems.valueAt(i))
+//            {
+//                simpleAdapter.remove(listCustomContacts.get(adapterPostion));
+//            }
+        }
+        checkedItems.clear();
+        simpleAdapter.notifyDataSetChanged();
+    }
+
+    private void changeButton()
+    {
+        FloatingActionButton btnDelete = (FloatingActionButton) findViewById(R.id.fabDelete);
+        btnDelete.hide();
+        Button btnRemove = (Button) findViewById(R.id.btnRemoveSelecteditem);
+        btnRemove.setVisibility(View.VISIBLE);
+    }
+
+    private void removeSelectedContact(ArrayList<String> selectedItems)
+    {
+        Button btnRemoveSelectedItems = (Button)findViewById(R.id.btnRemoveSelecteditem);
+
+        btnRemoveSelectedItems.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removeContacts();
+                if(simpleAdapter.getCount() == 0) {
+                    ((Button) findViewById(R.id.add_contacts)).setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 
 }
