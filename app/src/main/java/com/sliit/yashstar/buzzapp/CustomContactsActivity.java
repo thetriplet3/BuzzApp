@@ -136,7 +136,14 @@ public class CustomContactsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+
+        //region add more contacts
+        getMenuInflater().inflate(R.menu.add_contacts, menu);
+        //endregion
+
+        //region remove contact list
         getMenuInflater().inflate(R.menu.remove_list, menu);
+        //endregion
 
         //region Search
         getMenuInflater().inflate(R.menu.search_list, menu);
@@ -169,6 +176,9 @@ public class CustomContactsActivity extends AppCompatActivity {
             case R.id.removeList:
                 removeContactList();
                 break;
+            case R.id.add_contacts:
+                addMoreContacts();
+                break;
         }
         return true;
     }
@@ -181,6 +191,12 @@ public class CustomContactsActivity extends AppCompatActivity {
         buzzDB.execSQL(sql);
         txtAddList.setVisibility(View.VISIBLE);
 
+    }
+
+    private void addMoreContacts()
+    {
+        Intent intent = new Intent(CustomContactsActivity.this, Contact_list.class);
+        startActivity(intent);
     }
 
 }
